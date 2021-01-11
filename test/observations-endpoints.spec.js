@@ -43,7 +43,7 @@ describe("Observations Endpoints", function () {
     });
   });
 
-  describe("GET /observations/:observation_id", () => {
+  describe.only("GET /observations/:observation_id", () => {
     context("Given no observations", () => {
       it("responds with 404", () => {
         const observationId = 123456;
@@ -105,6 +105,38 @@ describe("Observations Endpoints", function () {
             .get(`/observations/${postRes.body.id}`)
             .expect(postRes.body)
         );
+    });
+
+    const requiredFields = [
+      "species",
+      "type",
+      "description",
+      "date",
+      "time",
+      "lat",
+      "lng",
+    ];
+
+    requiredFields.forEach((field) => {
+      const newObservation = {
+        species: "Flicker",
+        type: "Bird",
+        date: "2021-01-08T08:00:00.000Z",
+        time: "07:30:00",
+        description: "Two flickers at my feeder this morning",
+        lat: 51.593,
+        lng: -123.755,
+      };
+
+      it(`responds with 400 and an error message when the ${field} is missing`, () => {
+        delete newObservation[field];
+        return supertest(app)
+          .post("/observations")
+          .send(newObservation)
+          .expect(400, {
+            error: { message: `Missing '${field}' in request body` },
+          });
+      });
     });
   });
 });

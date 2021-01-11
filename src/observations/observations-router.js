@@ -16,6 +16,15 @@ observationsRouter
   .post(jsonParser, (req, res, next) => {
     const { species, type, date, time, description, lat, lng } = req.body;
     const newObservation = { species, type, date, time, description, lat, lng };
+
+    for (const [key, value] of Object.entries(newObservation)) {
+      if (value == null) {
+        return res.status(400).json({
+          error: { message: `Missing '${key}' in request body` },
+        });
+      }
+    }
+
     ObservationsService.insertObservation(req.app.get("db"), newObservation)
       .then((observation) => {
         res
