@@ -85,4 +85,42 @@ describe("Observations Endpoints", function () {
         .expect(200, expectedObservation);
     });
   });
+
+  describe(`POST /observations`, () => {
+    it(`Creates an observation, responding with 201 and the new observation`, () => {
+      this.retries(3);
+      const newObservation = {
+        species: "Flicker",
+        type: "Bird",
+        date: "2021-01-08T08:00:00.000Z",
+        time: "07:30:00",
+        description: "Two flickers at my feeder this morning",
+        lat: 51.593,
+        lng: -123.755,
+      };
+      return supertest(app)
+        .post("/observations")
+        .send(newObservation)
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.species).to.eql(newObservation.species);
+          expect(res.body.type).to.eql(newObservation.type);
+          expect(res.body.date).to.eql(newObservation.date);
+          expect(res.body.time).to.eql(newObservation.time);
+          expect(res.body.description).to.eql(newObservation.description);
+          expect(res.body.lat).to.eql(newObservation.lat);
+          expect(res.body.lng).to.eql(newObservation.lng);
+          expect(res.body).to.have.property("id");
+          expect(res.headers.location).to.eql(`/observations/${res.body.id}`);
+          const expected = new Date().toLocaleString();
+          const actual = new Date(res.body.date_added).toLocaleString();
+          expect(actual).to.eql(expected);
+        })
+        .then((postRes) =>
+          supertest(app)
+            .get(`/observations/${postRes.body.id}`)
+            .expect(postRes.body)
+        );
+    });
+  });
 });

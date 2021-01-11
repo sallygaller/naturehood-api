@@ -8,6 +8,7 @@ const { CLIENT_ORIGIN } = require("./config");
 const ObservationsService = require("./observations/observations-service");
 
 const app = express();
+const jsonParser = express.json();
 
 const morganOption = NODE_ENV === "production" ? "tiny" : "common";
 
@@ -29,6 +30,19 @@ app.get("/observations/:observation_id", (req, res, next) => {
   ObservationsService.getById(knexInstance, req.params.observation_id)
     .then((observation) => {
       res.json(observation);
+    })
+    .catch(next);
+});
+
+app.post("/observations", jsonParser, (req, res, next) => {
+  const { species, type, date, time, description, lat, lng } = req.body;
+  const newObservation = { species, type, date, time, description, lat, lng };
+  ObservationsService.insertObservation(req.app.get("db"), newObservation)
+    .then((observation) => {
+      res
+        .status(201)
+        .location(`/observations/${observation.id}`)
+        .json(observation);
     })
     .catch(next);
 });
