@@ -68,6 +68,37 @@ describe("Observations Endpoints", function () {
           .expect(200, expectedObservation);
       });
     });
+
+    context("Given an XSS attack observation", () => {
+      const maliciousObservation = {
+        id: 911,
+        species: 'Something bad <script>alert("xss");</script>',
+        type: "Bird",
+        date: "2021-01-08T08:00:00.000Z",
+        time: "07:30:00",
+        description: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
+        lat: 51.593,
+        lng: -123.755,
+      };
+
+      beforeEach("insert malicious observation", () => {
+        return db.into("observations").insert([maliciousObservation]);
+      });
+
+      it("removes XSS attact content", () => {
+        return supertest(app)
+          .get(`/observations/${maliciousObservation.id}`)
+          .expect(200)
+          .expect((res) => {
+            expect(res.body.species).to.eql(
+              'Something bad &lt;script&gt;alert("xss");&lt;/script&gt;'
+            );
+            expect(res.body.description).to.eql(
+              `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`
+            );
+          });
+      });
+    });
   });
 
   describe(`POST /observations`, () => {

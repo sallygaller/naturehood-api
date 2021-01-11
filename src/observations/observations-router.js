@@ -1,4 +1,5 @@
 const express = require("express");
+const xss = require("xss");
 const ObservationsService = require("./observations-service");
 
 const observationsRouter = express.Router();
@@ -44,7 +45,17 @@ observationsRouter.route("/:observation_id").get((req, res, next) => {
           error: { message: `Observation doesn't exist` },
         });
       }
-      res.json(observation);
+      res.json({
+        id: observation.id,
+        species: xss(observation.species),
+        type: observation.type,
+        date: observation.date,
+        time: observation.time,
+        description: xss(observation.description),
+        lat: observation.lat,
+        lng: observation.lng,
+        date_added: observation.date_added,
+      });
     })
     .catch(next);
 });
