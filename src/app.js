@@ -15,7 +15,7 @@ app.use(morgan(morganOption));
 app.use(cors());
 app.use(helmet());
 
-app.use("/observations", observationsRouter);
+app.use("/api/observations", observationsRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello, world!");

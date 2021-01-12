@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 const xss = require("xss");
 const ObservationsService = require("./observations-service");
@@ -41,7 +42,7 @@ observationsRouter
       .then((observation) => {
         res
           .status(201)
-          .location(`/observations/${observation.id}`)
+          .location(path.posix.join(req.originalUrl, `/${observation.id}`))
           .json(serializeObservation(observation));
       })
       .catch(next);

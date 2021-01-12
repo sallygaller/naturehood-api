@@ -21,10 +21,10 @@ describe("Observations Endpoints", function () {
 
   afterEach("cleanup", () => db("observations").truncate());
 
-  describe("GET /observations", () => {
+  describe("GET /api/observations", () => {
     context("Given no observations", () => {
       it("responds with 200 and an empty list", () => {
-        return supertest(app).get("/observations").expect(200, []);
+        return supertest(app).get("/api/observations").expect(200, []);
       });
     });
 
@@ -35,20 +35,20 @@ describe("Observations Endpoints", function () {
         return db.into("observations").insert(testObservations);
       });
 
-      it("GET /observations responds with 200 and all the observations", () => {
+      it("GET /api/observations responds with 200 and all the observations", () => {
         return supertest(app)
-          .get("/observations")
+          .get("/api/observations")
           .expect(200, testObservations);
       });
     });
   });
 
-  describe("GET /observations/:observation_id", () => {
+  describe("GET /api/observations/:observation_id", () => {
     context("Given no observations", () => {
       it("responds with 404", () => {
         const observationId = 123456;
         return supertest(app)
-          .get(`/observations/${observationId}`)
+          .get(`/api/observations/${observationId}`)
           .expect(404, { error: { message: `Observation doesn't exist` } });
       });
     });
@@ -60,11 +60,11 @@ describe("Observations Endpoints", function () {
         return db.into("observations").insert(testObservations);
       });
 
-      it("GET /observations/:observation_id responds with 200 and the specified observation", () => {
+      it("GET /api/observations/:observation_id responds with 200 and the specified observation", () => {
         const observationId = 2;
         const expectedObservation = testObservations[observationId - 1];
         return supertest(app)
-          .get(`/observations/${observationId}`)
+          .get(`/api/observations/${observationId}`)
           .expect(200, expectedObservation);
       });
     });
@@ -87,7 +87,7 @@ describe("Observations Endpoints", function () {
 
       it("removes XSS attact content", () => {
         return supertest(app)
-          .get(`/observations/${maliciousObservation.id}`)
+          .get(`/api/observations/${maliciousObservation.id}`)
           .expect(200)
           .expect((res) => {
             expect(res.body.species).to.eql(
@@ -101,7 +101,7 @@ describe("Observations Endpoints", function () {
     });
   });
 
-  describe("POST /observations", () => {
+  describe("POST /api/observations", () => {
     it("Creates an observation, responding with 201 and the new observation", () => {
       this.retries(3);
       const newObservation = {
@@ -114,7 +114,7 @@ describe("Observations Endpoints", function () {
         lng: -123.755,
       };
       return supertest(app)
-        .post("/observations")
+        .post("/api/observations")
         .send(newObservation)
         .expect(201)
         .expect((res) => {
@@ -126,14 +126,16 @@ describe("Observations Endpoints", function () {
           expect(res.body.lat).to.eql(newObservation.lat);
           expect(res.body.lng).to.eql(newObservation.lng);
           expect(res.body).to.have.property("id");
-          expect(res.headers.location).to.eql(`/observations/${res.body.id}`);
+          expect(res.headers.location).to.eql(
+            `/api/observations/${res.body.id}`
+          );
           const expected = new Date().toLocaleString();
           const actual = new Date(res.body.date_added).toLocaleString();
           expect(actual).to.eql(expected);
         })
         .then((postRes) =>
           supertest(app)
-            .get(`/observations/${postRes.body.id}`)
+            .get(`/api/observations/${postRes.body.id}`)
             .expect(postRes.body)
         );
     });
@@ -162,7 +164,7 @@ describe("Observations Endpoints", function () {
       it(`responds with 400 and an error message when the ${field} is missing`, () => {
         delete newObservation[field];
         return supertest(app)
-          .post("/observations")
+          .post("/api/observations")
           .send(newObservation)
           .expect(400, {
             error: { message: `Missing '${field}' in request body` },
@@ -171,12 +173,12 @@ describe("Observations Endpoints", function () {
     });
   });
 
-  describe("DELETE /observations/:observation_id", () => {
+  describe("DELETE /api/observations/:observation_id", () => {
     context("Given no observations", () => {
       it("responds with 404", () => {
         const observationId = 123456;
         return supertest(app)
-          .delete(`/observations/${observationId}`)
+          .delete(`/api/observations/${observationId}`)
           .expect(404, { error: { message: `Observation doesn't exist` } });
       });
     });
@@ -194,10 +196,10 @@ describe("Observations Endpoints", function () {
           (observation) => observation.id !== idToRemove
         );
         return supertest(app)
-          .delete(`/observations/${idToRemove}`)
+          .delete(`/api/observations/${idToRemove}`)
           .expect(204)
           .then((res) =>
-            supertest(app).get("/observations").expect(expectedObservations)
+            supertest(app).get("/api/observations").expect(expectedObservations)
           );
       });
     });
