@@ -2,6 +2,9 @@ const { expect } = require("chai");
 const knex = require("knex");
 const supertest = require("supertest");
 const app = require("../src/app");
+const {
+  updateObservation,
+} = require("../src/observations/observations-service");
 const { makeObservationsArray } = require("./observations.fixtures");
 
 describe("Observations Endpoints", function () {
@@ -200,6 +203,88 @@ describe("Observations Endpoints", function () {
           .expect(204)
           .then((res) =>
             supertest(app).get("/api/observations").expect(expectedObservations)
+          );
+      });
+    });
+  });
+
+  describe(`PATCH /api/observations/:observation_id`, () => {
+    context(`Given no observations`, () => {
+      it(`responds with 404`, () => {
+        const observationId = 123456;
+        return supertest(app)
+          .patch(`/api/observations/${observationId}`)
+          .expect(404, { error: { message: `Observation doesn't exist` } });
+      });
+    });
+
+    context(`Given there are observations in the database`, () => {
+      const testObservations = makeObservationsArray();
+
+      beforeEach("insert observations", () => {
+        return db.into("observations").insert(testObservations);
+      });
+
+      it("responds with 204 and updates the observation", () => {
+        const idToUpdate = 2;
+        const updatedObservation = {
+          species: "Fox",
+          type: "Mammal",
+          date: "2021-01-08T08:00:00.000Z",
+          time: "07:30:00",
+          description:
+            "I saw a mother fox and her cubs. The mother hissed at me.",
+          lat: 51.593,
+          lng: -123.755,
+        };
+        const expectedObservation = {
+          ...testObservations[idToUpdate - 1],
+          ...updatedObservation,
+        };
+        return supertest(app)
+          .patch(`/api/observations/${idToUpdate}`)
+          .send(updatedObservation)
+          .expect(204)
+          .then((res) =>
+            supertest(app)
+              .get(`/api/observations/${idToUpdate}`)
+              .expect(expectedObservation)
+          );
+      });
+
+      it(`responds with 400 when no required fields supplied`, () => {
+        const idToUpdate = 2;
+        return supertest(app)
+          .patch(`/api/observations/${idToUpdate}`)
+          .send({ randomField: "foo" })
+          .expect(400, {
+            error: {
+              message: `Request body is missing a required field`,
+            },
+          });
+      });
+
+      it(`responds with 204 when updating only a subset of fields`, () => {
+        const idToUpdate = 2;
+        const updatedObservation = {
+          species: "Skunk",
+        };
+        const expectedObservation = {
+          ...testObservations[idToUpdate - 1],
+          ...updatedObservation,
+        };
+
+        return supertest(app)
+          .patch(`/api/observations/${idToUpdate}`)
+          .send({
+            ...updatedObservation,
+            fieldToIgnore: "should not be in GET response",
+          })
+          .expect(204)
+          .then((res) =>
+            supertest(app)
+              .get(`/api/observations/${idToUpdate}`)
+              .expect(expectedObservation)
           );
       });
     });

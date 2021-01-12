@@ -75,6 +75,38 @@ observationsRouter
         res.status(204).end();
       })
       .catch(next);
+  })
+  .patch(jsonParser, (req, res, next) => {
+    const { species, type, date, time, description, lat, lng } = req.body;
+    const observationToUpdate = {
+      species,
+      type,
+      date,
+      time,
+      description,
+      lat,
+      lng,
+    };
+
+    const numberOfValues = Object.values(observationToUpdate).filter(Boolean)
+      .length;
+    if (numberOfValues === 0) {
+      return res.status(400).json({
+        error: {
+          message: `Request body is missing a required field`,
+        },
+      });
+    }
+
+    ObservationsService.updateObservation(
+      req.app.get("db"),
+      req.params.observation_id,
+      observationToUpdate
+    )
+      .then((numRowsAffected) => {
+        res.status(204).end();
+      })
+      .catch(next);
   });
 
 module.exports = observationsRouter;

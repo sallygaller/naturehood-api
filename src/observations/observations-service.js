@@ -17,6 +17,9 @@ const ObservationsService = {
   deleteObservation(knex, id) {
     return knex("observations").where({ id }).delete();
   },
+  updateObservation(knex, id, newObservationFields) {
+    return knex("observations").where({ id }).update(newObservationFields);
+  },
 };
 
 module.exports = ObservationsService;
