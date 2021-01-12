@@ -171,7 +171,7 @@ describe("Observations Endpoints", function () {
     });
   });
 
-  describe.only("DELETE /observations/:observation_id", () => {
+  describe("DELETE /observations/:observation_id", () => {
     context("Given no observations", () => {
       it("responds with 404", () => {
         const observationId = 123456;
