@@ -36,28 +36,43 @@ observationsRouter
       .catch(next);
   });
 
-observationsRouter.route("/:observation_id").get((req, res, next) => {
-  const knexInstance = req.app.get("db");
-  ObservationsService.getById(knexInstance, req.params.observation_id)
-    .then((observation) => {
-      if (!observation) {
-        return res.status(404).json({
-          error: { message: `Observation doesn't exist` },
-        });
-      }
-      res.json({
-        id: observation.id,
-        species: xss(observation.species),
-        type: observation.type,
-        date: observation.date,
-        time: observation.time,
-        description: xss(observation.description),
-        lat: observation.lat,
-        lng: observation.lng,
-        date_added: observation.date_added,
-      });
-    })
-    .catch(next);
-});
+observationsRouter
+  .route("/:observation_id")
+  .all((req, res, next) => {
+    ObservationsService.getById(req.app.get("db"), req.params.observation_id)
+      .then((observation) => {
+        if (!observation) {
+          return res
+            .status(404)
+            .json({ error: { message: `Observation doesn't exist` } });
+        }
+        res.observation = observation;
+        next();
+      })
+      .catch(next);
+  })
+  .get((req, res, next) => {
+    res.json({
+      id: observation.id,
+      species: xss(observation.species),
+      type: observation.type,
+      date: observation.date,
+      time: observation.time,
+      description: xss(observation.description),
+      lat: observation.lat,
+      lng: observation.lng,
+      date_added: observation.date_added,
+    });
+  })
+  .delete((req, res, next) => {
+    ObservationsService.deleteObservation(
+      req.app.get("db"),
+      req.params.observation_id
+    )
+      .then(() => {
+        res.status(204).end();
+      })
+      .catch(next);
+  });
 
 module.exports = observationsRouter;

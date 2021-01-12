@@ -43,7 +43,7 @@ describe("Observations Endpoints", function () {
     });
   });
 
-  describe.only("GET /observations/:observation_id", () => {
+  describe("GET /observations/:observation_id", () => {
     context("Given no observations", () => {
       it("responds with 404", () => {
         const observationId = 123456;
@@ -101,8 +101,8 @@ describe("Observations Endpoints", function () {
     });
   });
 
-  describe(`POST /observations`, () => {
-    it(`Creates an observation, responding with 201 and the new observation`, () => {
+  describe("POST /observations", () => {
+    it("Creates an observation, responding with 201 and the new observation", () => {
       this.retries(3);
       const newObservation = {
         species: "Flicker",
@@ -167,6 +167,38 @@ describe("Observations Endpoints", function () {
           .expect(400, {
             error: { message: `Missing '${field}' in request body` },
           });
+      });
+    });
+  });
+
+  describe.only("DELETE /observations/:observation_id", () => {
+    context("Given no observations", () => {
+      it("responds with 404", () => {
+        const observationId = 123456;
+        return supertest(app)
+          .delete(`/observations/${observationId}`)
+          .expect(404, { error: { message: `Observation doesn't exist` } });
+      });
+    });
+
+    context("Give there are observations in the database", () => {
+      const testObservations = makeObservationsArray();
+
+      beforeEach("insert observations", () => {
+        return db.into("observations").insert(testObservations);
+      });
+
+      it("responds with 204 and removes the observation", () => {
+        const idToRemove = 2;
+        const expectedObservations = testObservations.filter(
+          (observation) => observation.id !== idToRemove
+        );
+        return supertest(app)
+          .delete(`/observations/${idToRemove}`)
+          .expect(204)
+          .then((res) =>
+            supertest(app).get("/observations").expect(expectedObservations)
+          );
       });
     });
   });

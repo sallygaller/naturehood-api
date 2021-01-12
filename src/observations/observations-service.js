@@ -14,6 +14,9 @@ const ObservationsService = {
         return rows[0];
       });
   },
+  deleteObservation(knex, id) {
+    return knex("observations").where({ id }).delete();
+  },
 };
 
 module.exports = ObservationsService;
