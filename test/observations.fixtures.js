@@ -10,6 +10,7 @@ function makeObservationsArray() {
       lat: 45.593,
       lng: -122.755,
       date_added: "2020-12-25T09:28:32.615Z",
+      neighbor: 1,
     },
     {
       id: 2,
@@ -21,6 +22,7 @@ function makeObservationsArray() {
       lat: 47.593,
       lng: -122.755,
       date_added: "2020-12-15T16:28:32.615Z",
+      neighbor: 1,
     },
     {
       id: 3,
@@ -32,6 +34,7 @@ function makeObservationsArray() {
       lat: 49.593,
       lng: -122.755,
       date_added: "2020-12-06T09:28:32.615Z",
+      neighbor: 2,
     },
     {
       id: 4,
@@ -43,6 +46,7 @@ function makeObservationsArray() {
       lat: 51.593,
       lng: -123.755,
       date_added: "2020-12-08T10:15:32.615Z",
+      neighbor: 3,
     },
   ];
 }

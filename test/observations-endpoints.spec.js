@@ -2,10 +2,9 @@ const { expect } = require("chai");
 const knex = require("knex");
 const supertest = require("supertest");
 const app = require("../src/app");
-const {
-  updateObservation,
-} = require("../src/observations/observations-service");
+
 const { makeObservationsArray } = require("./observations.fixtures");
+const { makeUsersArray } = require("./users.fixtures");
 
 describe("Observations Endpoints", function () {
   let db;
@@ -20,9 +19,13 @@ describe("Observations Endpoints", function () {
 
   after("disconnect from db", () => db.destroy());
 
-  before("clean the table", () => db("observations").truncate());
+  before("clean the table", () =>
+    db.raw("TRUNCATE observations, naturehood_users RESTART IDENTITY CASCADE")
+  );
 
-  afterEach("cleanup", () => db("observations").truncate());
+  afterEach("cleanup", () =>
+    db.raw("TRUNCATE observations, naturehood_users RESTART IDENTITY CASCADE")
+  );
 
   describe("GET /api/observations", () => {
     context("Given no observations", () => {
@@ -32,10 +35,16 @@ describe("Observations Endpoints", function () {
     });
 
     context("Given there are observations in the database", () => {
+      const testUsers = makeUsersArray();
       const testObservations = makeObservationsArray();
 
       beforeEach("insert observations", () => {
-        return db.into("observations").insert(testObservations);
+        return db
+          .into("naturehood_users")
+          .insert(testUsers)
+          .then(() => {
+            return db.into("observations").insert(testObservations);
+          });
       });
 
       it("GET /api/observations responds with 200 and all the observations", () => {
@@ -58,9 +67,15 @@ describe("Observations Endpoints", function () {
 
     context("Given there are observations in the database", () => {
       const testObservations = makeObservationsArray();
+      const testUsers = makeUsersArray();
 
       beforeEach("insert observations", () => {
-        return db.into("observations").insert(testObservations);
+        return db
+          .into("naturehood_users")
+          .insert(testUsers)
+          .then(() => {
+            return db.into("observations").insert(testObservations);
+          });
       });
 
       it("GET /api/observations/:observation_id responds with 200 and the specified observation", () => {
@@ -188,9 +203,15 @@ describe("Observations Endpoints", function () {
 
     context("Give there are observations in the database", () => {
       const testObservations = makeObservationsArray();
+      const testUsers = makeUsersArray();
 
       beforeEach("insert observations", () => {
-        return db.into("observations").insert(testObservations);
+        return db
+          .into("naturehood_users")
+          .insert(testUsers)
+          .then(() => {
+            return db.into("observations").insert(testObservations);
+          });
       });
 
       it("responds with 204 and removes the observation", () => {
@@ -220,9 +241,15 @@ describe("Observations Endpoints", function () {
 
     context(`Given there are observations in the database`, () => {
       const testObservations = makeObservationsArray();
+      const testUsers = makeUsersArray();
 
       beforeEach("insert observations", () => {
-        return db.into("observations").insert(testObservations);
+        return db
+          .into("naturehood_users")
+          .insert(testUsers)
+          .then(() => {
+            return db.into("observations").insert(testObservations);
+          });
       });
 
       it("responds with 204 and updates the observation", () => {

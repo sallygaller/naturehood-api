@@ -16,6 +16,7 @@ const serializeObservation = (observation) => ({
   lat: observation.lat,
   lng: observation.lng,
   date_added: observation.date_added,
+  neighbor: observation.neighbor,
 });
 
 observationsRouter
@@ -29,7 +30,16 @@ observationsRouter
       .catch(next);
   })
   .post(jsonParser, (req, res, next) => {
-    const { species, type, date, time, description, lat, lng } = req.body;
+    const {
+      species,
+      type,
+      date,
+      time,
+      description,
+      lat,
+      lng,
+      neighbor,
+    } = req.body;
     const newObservation = { species, type, date, time, description, lat, lng };
 
     for (const [key, value] of Object.entries(newObservation))
@@ -37,7 +47,7 @@ observationsRouter
         return res.status(400).json({
           error: { message: `Missing '${key}' in request body` },
         });
-
+    newObservation.neighbor = neighbor;
     ObservationsService.insertObservation(req.app.get("db"), newObservation)
       .then((observation) => {
         res
