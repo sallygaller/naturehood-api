@@ -1,4 +1,4 @@
-INSERT INTO observations (species, type, date, time, description, lat, lng, neighbor)
+INSERT INTO observations (species, type, CAST(GETDATE() as date), time, description, lat, lng, neighbor)
 
 VALUES
 ('Robin', 'Bird', '2020-12-25', '08:30:00', 'I saw a robin at my feeder', 45.593, -122.755, 1),

@@ -2,6 +2,7 @@ const path = require("path");
 const express = require("express");
 const xss = require("xss");
 const ObservationsService = require("./observations-service");
+const { requireAuth } = require("../middleware/basic-auth");
 
 const observationsRouter = express.Router();
 const jsonParser = express.json();
@@ -21,6 +22,7 @@ const serializeObservation = (observation) => ({
 
 observationsRouter
   .route("/")
+  .all(requireAuth)
   .get((req, res, next) => {
     const knexInstance = req.app.get("db");
     ObservationsService.getAllObservations(knexInstance)
@@ -60,6 +62,7 @@ observationsRouter
 
 observationsRouter
   .route("/:observation_id")
+  .all(requireAuth)
   .all((req, res, next) => {
     ObservationsService.getById(req.app.get("db"), req.params.observation_id)
       .then((observation) => {

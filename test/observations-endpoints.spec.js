@@ -6,8 +6,15 @@ const app = require("../src/app");
 const { makeObservationsArray } = require("./observations.fixtures");
 const { makeUsersArray } = require("./users.fixtures");
 
-describe("Observations Endpoints", function () {
+describe.only("Observations Endpoints", function () {
   let db;
+
+  function makeAuthHeader(user) {
+    const token = Buffer.from(`${user.user_name}:${user.password}`).toString(
+      "base64"
+    );
+    return `Basic ${token}`;
+  }
 
   before("make knex instance", () => {
     db = knex({
@@ -27,10 +34,41 @@ describe("Observations Endpoints", function () {
     db.raw("TRUNCATE observations, naturehood_users RESTART IDENTITY CASCADE")
   );
 
+  describe("Protected endpoints", () => {
+    const testUsers = makeUsersArray();
+    const testObservations = makeObservationsArray();
+
+    beforeEach("insert observations", () => {
+      return db
+        .into("naturehood_users")
+        .insert(testUsers)
+        .then(() => {
+          return db.into("observations").insert(testObservations);
+        });
+    });
+
+    describe("GET /api/observations/:observation_id", () => {
+      it("responds with 401 'Missing basic token' when no token is present", () => {
+        return supertest(app)
+          .get("/api/observations/1")
+          .expect(401, { error: `Missing basic token` });
+      });
+    });
+  });
+
   describe("GET /api/observations", () => {
     context("Given no observations", () => {
+      const testUsers = makeUsersArray();
+
+      beforeEach("insert users", () => {
+        return db.into("naturehood_users").insert(testUsers);
+      });
+
       it("responds with 200 and an empty list", () => {
-        return supertest(app).get("/api/observations").expect(200, []);
+        return supertest(app)
+          .get("/api/observations")
+          .set("Authorization", makeAuthHeader(testUsers[0]))
+          .expect(200, []);
       });
     });
 
@@ -50,6 +88,7 @@ describe("Observations Endpoints", function () {
       it("GET /api/observations responds with 200 and all the observations", () => {
         return supertest(app)
           .get("/api/observations")
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .expect(200, testObservations);
       });
     });
@@ -57,10 +96,17 @@ describe("Observations Endpoints", function () {
 
   describe("GET /api/observations/:observation_id", () => {
     context("Given no observations", () => {
+      const testUsers = makeUsersArray();
+
+      beforeEach("insert users", () => {
+        return db.into("naturehood_users").insert(testUsers);
+      });
+
       it("responds with 404", () => {
         const observationId = 123456;
         return supertest(app)
           .get(`/api/observations/${observationId}`)
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .expect(404, { error: { message: `Observation doesn't exist` } });
       });
     });
@@ -83,11 +129,13 @@ describe("Observations Endpoints", function () {
         const expectedObservation = testObservations[observationId - 1];
         return supertest(app)
           .get(`/api/observations/${observationId}`)
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .expect(200, expectedObservation);
       });
     });
 
     context("Given an XSS attack observation", () => {
+      const testUsers = makeUsersArray();
       const maliciousObservation = {
         id: 911,
         species: 'Something bad <script>alert("xss");</script>',
@@ -100,12 +148,18 @@ describe("Observations Endpoints", function () {
       };
 
       beforeEach("insert malicious observation", () => {
-        return db.into("observations").insert([maliciousObservation]);
+        return db
+          .into("naturehood_users")
+          .insert(testUsers)
+          .then(() => {
+            return db.into("observations").insert([maliciousObservation]);
+          });
       });
 
       it("removes XSS attact content", () => {
         return supertest(app)
           .get(`/api/observations/${maliciousObservation.id}`)
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect((res) => {
             expect(res.body.species).to.eql(
@@ -120,6 +174,13 @@ describe("Observations Endpoints", function () {
   });
 
   describe("POST /api/observations", () => {
+    const testObservations = makeObservationsArray();
+    const testUsers = makeUsersArray();
+
+    beforeEach("insert users", () => {
+      return db.into("naturehood_users").insert(testUsers);
+    });
+
     it("Creates an observation, responding with 201 and the new observation", () => {
       this.retries(3);
       const newObservation = {
@@ -133,6 +194,7 @@ describe("Observations Endpoints", function () {
       };
       return supertest(app)
         .post("/api/observations")
+        .set("Authorization", makeAuthHeader(testUsers[0]))
         .send(newObservation)
         .expect(201)
         .expect((res) => {
@@ -154,6 +216,7 @@ describe("Observations Endpoints", function () {
         .then((postRes) =>
           supertest(app)
             .get(`/api/observations/${postRes.body.id}`)
+            .set("Authorization", makeAuthHeader(testUsers[0]))
             .expect(postRes.body)
         );
     });
@@ -183,6 +246,7 @@ describe("Observations Endpoints", function () {
         delete newObservation[field];
         return supertest(app)
           .post("/api/observations")
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .send(newObservation)
           .expect(400, {
             error: { message: `Missing '${field}' in request body` },
@@ -193,10 +257,17 @@ describe("Observations Endpoints", function () {
 
   describe("DELETE /api/observations/:observation_id", () => {
     context("Given no observations", () => {
+      const testUsers = makeUsersArray();
+
+      beforeEach("insert users", () => {
+        return db.into("naturehood_users").insert(testUsers);
+      });
+
       it("responds with 404", () => {
         const observationId = 123456;
         return supertest(app)
           .delete(`/api/observations/${observationId}`)
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .expect(404, { error: { message: `Observation doesn't exist` } });
       });
     });
@@ -221,20 +292,31 @@ describe("Observations Endpoints", function () {
         );
         return supertest(app)
           .delete(`/api/observations/${idToRemove}`)
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .expect(204)
           .then((res) =>
-            supertest(app).get("/api/observations").expect(expectedObservations)
+            supertest(app)
+              .get("/api/observations")
+              .set("Authorization", makeAuthHeader(testUsers[0]))
+              .expect(expectedObservations)
           );
       });
     });
   });
 
-  describe(`PATCH /api/observations/:observation_id`, () => {
+  describe("PATCH /api/observations/:observation_id", () => {
     context(`Given no observations`, () => {
+      const testUsers = makeUsersArray();
+
+      beforeEach("insert users", () => {
+        return db.into("naturehood_users").insert(testUsers);
+      });
+
       it(`responds with 404`, () => {
         const observationId = 123456;
         return supertest(app)
           .patch(`/api/observations/${observationId}`)
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .expect(404, { error: { message: `Observation doesn't exist` } });
       });
     });
@@ -270,11 +352,13 @@ describe("Observations Endpoints", function () {
         };
         return supertest(app)
           .patch(`/api/observations/${idToUpdate}`)
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .send(updatedObservation)
           .expect(204)
           .then((res) =>
             supertest(app)
               .get(`/api/observations/${idToUpdate}`)
+              .set("Authorization", makeAuthHeader(testUsers[0]))
               .expect(expectedObservation)
           );
       });
@@ -283,6 +367,7 @@ describe("Observations Endpoints", function () {
         const idToUpdate = 2;
         return supertest(app)
           .patch(`/api/observations/${idToUpdate}`)
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .send({ randomField: "foo" })
           .expect(400, {
             error: {
@@ -303,6 +388,7 @@ describe("Observations Endpoints", function () {
 
         return supertest(app)
           .patch(`/api/observations/${idToUpdate}`)
+          .set("Authorization", makeAuthHeader(testUsers[0]))
           .send({
             ...updatedObservation,
             fieldToIgnore: "should not be in GET response",
@@ -311,6 +397,7 @@ describe("Observations Endpoints", function () {
           .then((res) =>
             supertest(app)
               .get(`/api/observations/${idToUpdate}`)
+              .set("Authorization", makeAuthHeader(testUsers[0]))
               .expect(expectedObservation)
           );
       });
