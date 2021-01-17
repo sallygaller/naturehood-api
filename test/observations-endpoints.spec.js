@@ -10,7 +10,7 @@ describe.only("Observations Endpoints", function () {
   let db;
 
   function makeAuthHeader(user) {
-    const token = Buffer.from(`${user.user_name}:${user.password}`).toString(
+    const token = Buffer.from(`${user.email}:${user.password}`).toString(
       "base64"
     );
     return `Basic ${token}`;
@@ -52,6 +52,22 @@ describe.only("Observations Endpoints", function () {
         return supertest(app)
           .get("/api/observations/1")
           .expect(401, { error: `Missing basic token` });
+      });
+
+      it(`responds 401 'Unauthorized request' when no credentials in token`, () => {
+        const userNoCreds = { email: "", password: "" };
+        return supertest(app)
+          .get(`/api/observations/123`)
+          .set("Authorization", makeAuthHeader(userNoCreds))
+          .expect(401, { error: `Unauthorized request` });
+      });
+
+      it(`responds 401 'Unauthorized request' when invalid email`, () => {
+        const userInvalidCreds = { email: "hello", password: "existy" };
+        return supertest(app)
+          .get(`/api/observations/1`)
+          .set("Authorization", makeAuthHeader(userInvalidCreds))
+          .expect(401, { error: `Unauthorized request` });
       });
     });
   });
