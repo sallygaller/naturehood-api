@@ -2,18 +2,20 @@ const { expect } = require("chai");
 const knex = require("knex");
 const supertest = require("supertest");
 const app = require("../src/app");
+const jwt = require("jsonwebtoken");
 
 const { makeObservationsArray } = require("./observations.fixtures");
 const { makeUsersArray } = require("./users.fixtures");
 
-describe.only("Observations Endpoints", function () {
+describe("Observations Endpoints", function () {
   let db;
 
-  function makeAuthHeader(user) {
-    const token = Buffer.from(`${user.email}:${user.password}`).toString(
-      "base64"
-    );
-    return `Basic ${token}`;
+  function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
+    const token = jwt.sign({ user_id: user.id }, secret, {
+      subject: user.email,
+      algorithm: "HS256",
+    });
+    return `Bearer ${token}`;
   }
 
   before("make knex instance", () => {
@@ -33,44 +35,6 @@ describe.only("Observations Endpoints", function () {
   afterEach("cleanup", () =>
     db.raw("TRUNCATE observations, naturehood_users RESTART IDENTITY CASCADE")
   );
-
-  describe("Protected endpoints", () => {
-    const testUsers = makeUsersArray();
-    const testObservations = makeObservationsArray();
-
-    beforeEach("insert observations", () => {
-      return db
-        .into("naturehood_users")
-        .insert(testUsers)
-        .then(() => {
-          return db.into("observations").insert(testObservations);
-        });
-    });
-
-    describe("GET /api/observations/:observation_id", () => {
-      it("responds with 401 'Missing basic token' when no token is present", () => {
-        return supertest(app)
-          .get("/api/observations/1")
-          .expect(401, { error: `Missing basic token` });
-      });
-
-      it(`responds 401 'Unauthorized request' when no credentials in token`, () => {
-        const userNoCreds = { email: "", password: "" };
-        return supertest(app)
-          .get(`/api/observations/123`)
-          .set("Authorization", makeAuthHeader(userNoCreds))
-          .expect(401, { error: `Unauthorized request` });
-      });
-
-      it(`responds 401 'Unauthorized request' when invalid email`, () => {
-        const userInvalidCreds = { email: "hello", password: "existy" };
-        return supertest(app)
-          .get(`/api/observations/1`)
-          .set("Authorization", makeAuthHeader(userInvalidCreds))
-          .expect(401, { error: `Unauthorized request` });
-      });
-    });
-  });
 
   describe("GET /api/observations", () => {
     context("Given no observations", () => {
@@ -207,6 +171,7 @@ describe.only("Observations Endpoints", function () {
         description: "Two flickers at my feeder this morning",
         lat: 51.593,
         lng: -123.755,
+        neighbor: 1,
       };
       return supertest(app)
         .post("/api/observations")
@@ -221,6 +186,7 @@ describe.only("Observations Endpoints", function () {
           expect(res.body.description).to.eql(newObservation.description);
           expect(res.body.lat).to.eql(newObservation.lat);
           expect(res.body.lng).to.eql(newObservation.lng);
+          expect(res.body.neighbor).to.eql(testUsers[0].id);
           expect(res.body).to.have.property("id");
           expect(res.headers.location).to.eql(
             `/api/observations/${res.body.id}`
