@@ -5,6 +5,9 @@ const ObservationsService = {
   getById(knex, id) {
     return knex.from("observations").select("*").where("id", id).first();
   },
+  getUserObservations(knex, id) {
+    return knex.from("observations").select("*").where("neighbor", id);
+  },
   insertObservation(knex, newObservation) {
     return knex
       .insert(newObservation)

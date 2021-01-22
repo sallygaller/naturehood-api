@@ -59,6 +59,19 @@ observationsRouter
   });
 
 observationsRouter
+  .route("/user")
+  .all(requireAuth)
+  .get((req, res, next) => {
+    const knexInstance = req.app.get("db");
+    const id = req.user.id;
+    ObservationsService.getUserObservations(knexInstance, id)
+      .then((observations) => {
+        res.json(observations.map(serializeObservation));
+      })
+      .catch(next);
+  });
+
+observationsRouter
   .route("/:observation_id")
   .all(requireAuth)
   .all((req, res, next) => {
