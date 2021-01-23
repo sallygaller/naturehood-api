@@ -21,8 +21,6 @@ authRouter.post("/login", jsonBodyParser, (req, res, next) => {
         return res.status(400).json({
           error: "Incorrect email or password",
         });
-      // return (
-      //   AuthService.comparePasswords(loginUser.password, dbUser.password)
       return AuthService.comparePasswords(
         loginUser.password,
         dbUser.password
@@ -36,6 +34,8 @@ authRouter.post("/login", jsonBodyParser, (req, res, next) => {
         const payload = { user_id: dbUser.id };
         res.send({
           authToken: AuthService.createJwt(sub, payload),
+          lat: dbUser.lat,
+          lng: dbUser.lng,
         });
       });
     })
@@ -43,7 +43,7 @@ authRouter.post("/login", jsonBodyParser, (req, res, next) => {
 });
 
 authRouter.post("/refresh", requireAuth, (req, res) => {
-  const sub = req.user.user_name;
+  const sub = req.user.email;
   const payload = { user_id: req.user.id };
   res.send({
     authToken: AuthService.createJwt(sub, payload),

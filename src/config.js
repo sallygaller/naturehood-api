@@ -11,5 +11,5 @@ module.exports = {
     process.env.REACT_APP_API_BASE_URL ||
     "http://localhost:8000/api/observations",
   CLIENT_ORIGIN: `http://localhost:3000`,
-  JWT_EXPIRY: process.env.JWT_EXPIRY || "1800s",
+  JWT_EXPIRY: process.env.JWT_EXPIRY || "7200s",
 };
