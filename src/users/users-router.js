@@ -7,8 +7,15 @@ const jsonBodyParser = express.json();
 
 usersRouter.post("/", jsonBodyParser, (req, res, next) => {
   const { fullname, password, email, zipcode, lat, lng } = req.body;
-  console.log(lat, lng);
-  for (const field of ["fullname", "email", "zipcode", "password", "zipcode"])
+  for (const field of [
+    "fullname",
+    "email",
+    "zipcode",
+    "password",
+    "zipcode",
+    "lat",
+    "lng",
+  ])
     if (!req.body[field])
       return res
         .status(400)
@@ -24,6 +31,7 @@ usersRouter.post("/", jsonBodyParser, (req, res, next) => {
         return res.status(400).json({ error: `Email already taken` });
 
       return UsersService.hashPassword(password).then((hashedPassword) => {
+        console.log(hashedPassword);
         const newUser = {
           fullname,
           email,
@@ -36,7 +44,6 @@ usersRouter.post("/", jsonBodyParser, (req, res, next) => {
 
         return UsersService.insertUser(req.app.get("db"), newUser).then(
           (user) => {
-            console.log(newUser);
             res
               .status(201)
               .location(path.posix.join(req.originalUrl, `/${user.id}`))

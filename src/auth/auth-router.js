@@ -26,7 +26,7 @@ authRouter.post("/login", jsonBodyParser, (req, res, next) => {
         dbUser.password
       ).then((compareMatch) => {
         console.log(compareMatch);
-        if (loginUser.password !== dbUser.password)
+        if (!compareMatch)
           return res.status(400).json({
             error: "Incorrect email or password",
           });

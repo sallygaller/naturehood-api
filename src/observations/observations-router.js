@@ -33,6 +33,7 @@ observationsRouter
   })
   .post(jsonParser, (req, res, next) => {
     const { species, type, date, time, description, lat, lng } = req.body;
+    const neighbor = req.user.id;
     const newObservation = {
       species,
       type,
@@ -41,13 +42,14 @@ observationsRouter
       description,
       lat,
       lng,
+      neighbor,
     };
     for (const [key, value] of Object.entries(newObservation))
       if (value == null)
         return res.status(400).json({
           error: { message: `Missing '${key}' in request body` },
         });
-    newObservation.neighbor = req.user.id;
+    // newObservation.neighbor = req.user.id;
     ObservationsService.insertObservation(req.app.get("db"), newObservation)
       .then((observation) => {
         res
