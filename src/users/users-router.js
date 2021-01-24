@@ -31,7 +31,6 @@ usersRouter.post("/", jsonBodyParser, (req, res, next) => {
         return res.status(400).json({ error: `Email already taken` });
 
       return UsersService.hashPassword(password).then((hashedPassword) => {
-        console.log(hashedPassword);
         const newUser = {
           fullname,
           email,
