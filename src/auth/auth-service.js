@@ -4,7 +4,6 @@ const config = require("../config");
 
 const AuthService = {
   getUserWithEmailAddress(db, email) {
-    console.log(db);
     return db("naturehood_users").where({ email }).first();
   },
   comparePasswords(password, hash) {
