@@ -15,6 +15,7 @@ authRouter.post("/login", jsonBodyParser, (req, res, next) => {
         error: `Missing '${key}' in request body`,
       });
   console.log(loginUser.email);
+  console.log(req.app.get("db"));
   AuthService.getUserWithEmailAddress(req.app.get("db"), loginUser.email)
     .then((dbUser) => {
       if (!dbUser)
@@ -32,13 +33,11 @@ authRouter.post("/login", jsonBodyParser, (req, res, next) => {
           });
         const sub = dbUser.email;
         const payload = { user_id: dbUser.id };
-        console.log("here!");
         res.send({
           authToken: AuthService.createJwt(sub, payload),
           lat: dbUser.lat,
           lng: dbUser.lng,
         });
-        console.log("Almost sent!");
       });
     })
     .catch(next);
