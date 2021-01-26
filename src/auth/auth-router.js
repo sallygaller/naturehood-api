@@ -14,8 +14,6 @@ authRouter.post("/login", jsonBodyParser, (req, res, next) => {
       return res.status(400).json({
         error: `Missing '${key}' in request body`,
       });
-  console.log(loginUser.email);
-  console.log(req.app.get("db"));
   AuthService.getUserWithEmailAddress(req.app.get("db"), loginUser.email)
     .then((dbUser) => {
       if (!dbUser)
@@ -26,7 +24,6 @@ authRouter.post("/login", jsonBodyParser, (req, res, next) => {
         loginUser.password,
         dbUser.password
       ).then((compareMatch) => {
-        console.log(compareMatch);
         if (!compareMatch)
           return res.status(400).json({
             error: "Incorrect email or password",
