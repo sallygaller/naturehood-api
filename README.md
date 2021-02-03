@@ -14,39 +14,21 @@ This REST API allows users to:
 ## Endpoints
 ### /api/user
 | Endpoint        | Body           | Result  |
-| ------------- |:-------------:| -----:|
-| `POST /api/user` | Name, email, password, latitude and longitude of user's neighbood (calculated upon registration via Google Maps Geocoder) | Creates a new user, directs them to Login page.
+| ------------- |-------------| ----- |
+| `POST /api/user` | Name, email, password, latitude and longitude of user's neighbood (calculated upon registration via Google Maps Geocoder). | Creates a new user, directs them to Login page. |
 
 ### /api/auth
-`POST /api/auth/login`
-Body: Email, password
-Result: Returns an auth token, and the latitude and longitude of user's neighborhood. 
-
-`POST /api/auth/refresh`
-Body: Auth token
-Result: Returns a refreshed auth token
+| Endpoint        | Body           | Result  |
+| ------------- |-------------| ----- |
+| `POST /api/auth/login` | Email, password. |Returns an auth token, and the latitude and longitude of user's neighborhood. |
+| `POST /api/auth/refresh` | Auth token. | Returns a refreshed auth token. |
 
 ### /api/observations
-`GET /api/observations`
-Body: Auth token
-Result: Returns all observations in the user's neighborhood
-
-`POST /api/observations`
-Body: Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting, auth token
-Result: Returns the newly created observation (JSON).
-
-`GET /api/observations/user`
-Body: Auth token
-Result: Returns all of the user's observations 
-
-`GET /api/observations/:id`
-Body: Auth token
-Result: Returns observation details of the submitted id (JSON).
-
-`PATCH /api/observations/:id`
-Body (at least one of the following): Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting; and auth token.
-Result: Returns the updated observatino (JSON).
-
-`DELETE /api/observations/:id`
-Body: Auth token
-Result: Deletes observation with the submitted id. 
+| Endpoint        | Body           | Result  |
+| ------------- |-------------| ----- |
+| `GET /api/observations` | Auth token. | Returns all observations in the user's neighborhood |
+| `POST /api/observations` | Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting, auth token | Returns the newly created observation (JSON). |
+| `GET /api/observations/user` | Auth token | Returns all of the user's observations. |
+| `GET /api/observations/:id` | Auth token | Returns observation details of the submitted id (JSON). |
+| `PATCH /api/observations/:id` | At least one of the following: Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting; and auth token. | Returns the updated observation (JSON). |
+| `DELETE /api/observations/:id` | Auth token. | Deletes observation with the submitted id. | 
