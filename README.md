@@ -11,6 +11,16 @@ This REST API allows users to:
 - View, create, delete, and edit their observations
 - View observations in their neighborhood
 
+## Technology Used
+- JavaScript
+- Node
+- PostgreSQL
+- Express
+- Knex
+- Chai
+- Mocha
+- Supertest
+
 ## Endpoints
 ### /api/user
 | Endpoint        | Body           | Result  |
@@ -20,15 +30,15 @@ This REST API allows users to:
 ### /api/auth
 | Endpoint        | Body           | Result  |
 | ------------- |-------------| ----- |
-| `POST /api/auth/login` | Email, password. |Returns an auth token, and the latitude and longitude of user's neighborhood. |
-| `POST /api/auth/refresh` | Auth token. | Returns a refreshed auth token. |
+| `POST /api/auth/login` | Email, password. |Returns a bearer token, and the latitude and longitude of user's neighborhood. |
+| `POST /api/auth/refresh` | Bearer token. | Returns a refreshed auth token. |
 
 ### /api/observations
 | Endpoint        | Body           | Result  |
 | ------------- |-------------| ----- |
-| `GET /api/observations` | Auth token. | Returns all observations in the user's neighborhood |
-| `POST /api/observations` | Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting, auth token | Returns the newly created observation (JSON). |
-| `GET /api/observations/user` | Auth token | Returns all of the user's observations. |
-| `GET /api/observations/:id` | Auth token | Returns observation details of the submitted id (JSON). |
-| `PATCH /api/observations/:id` | At least one of the following: Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting; and auth token. | Returns the updated observation (JSON). |
-| `DELETE /api/observations/:id` | Auth token. | Deletes observation with the submitted id. | 
+| `GET /api/observations` | Bearer token. | Returns all observations in the user's neighborhood |
+| `GET /api/observations/user` | Bearer token. | Returns all of the user's observations. |
+| `POST /api/observations` | Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting, auth token | Returns the newly created observation. |
+| `GET /api/observations/:id` | Bearer token | Returns observation details of the submitted id. |
+| `PATCH /api/observations/:id` | At least one of the following: Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting; and bearer token. | Returns the updated observation. |
+| `DELETE /api/observations/:id` | Bearer token. | Deletes observation with the submitted id. | 
