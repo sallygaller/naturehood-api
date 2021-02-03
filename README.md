@@ -1,26 +1,52 @@
-# Express Boilerplate!
+# natureHood API
 
-This is a boilerplate project used for starting new projects!
+View natureHood [here](https://naturehood-app.vercel.app/).
 
-## Set up
+View the client repo [here](https://github.com/sallygaller/naturehood).
 
-Complete the following steps to start a new project (NEW-PROJECT-NAME):
+natureHood is an app designed to foster community and wildlife advocacy in local neighborhoods. Users can record wildlife observations in their locale (e.g. species, time spotted, approximate location, and photo) and view wildlife spotted by their neighbors. The intention of the app is to build community, provide insight into wildlife population and migratory behaviors, and encourage local conservation efforts.
 
-1. Clone this repository to your local machine `git clone BOILERPLATE-URL NEW-PROJECTS-NAME`
-2. `cd` into the cloned repository
-3. Make a fresh start of the git history for this project with `rm -rf .git && git init`
-4. Install the node dependencies `npm install`
-5. Move the example Environment file to `.env` that will be ignored by git and read by the express server `mv example.env .env`
-6. Edit the contents of the `package.json` to use NEW-PROJECT-NAME instead of `"name": "express-boilerplate",`
+This REST API allows users to:
+- Register and log in
+- Create, delete, and edit observations
+- View observations in their neighborhood
 
-## Scripts
+## Endpoints
+### /api/user
+`POST /api/user`
+Body: Name, email, password, latitude and longitude of user's neighbood (calculated upon registration via Google Maps Geocoder)
+Result: Creates a new user, directs them to Login page. 
 
-Start the application `npm start`
+### /api/auth
+`POST /api/auth/login`
+Body: Email, password
+Result: Returns an auth token, and the latitude and longitude of user's neighborhood. 
 
-Start nodemon for the application `npm run dev`
+`POST /api/auth/refresh`
+Body: Auth token
+Result: Returns a refreshed auth token
 
-Run the tests `npm test`
+### /api/observations
+`GET /api/observations`
+Body: Auth token
+Result: Returns all observations in the user's neighborhood
 
-## Deploying
+`POST /api/observations`
+Body: Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting, auth token
+Result: Returns the newly created observation (JSON).
 
-When your new project is ready for deployment, add a new Heroku application with `heroku create`. This will make a new git remote called "heroku" and you can then `npm run deploy` which will push to this remote's master branch.
+`GET /api/observations/user`
+Body: Auth token
+Result: Returns all of the user's observations 
+
+`GET /api/observations/:id`
+Body: Auth token
+Result: Returns observation details of the submitted id (JSON).
+
+`PATCH /api/observations/:id`
+Body (at least one of the following): Species, species type, observation description, time of sighting, date of sighting, latitude and longitude of sighting; and auth token.
+Result: Returns the updated observatino (JSON).
+
+`DELETE /api/observations/:id`
+Body: Auth token
+Result: Deletes observation with the submitted id. 

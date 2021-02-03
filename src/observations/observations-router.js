@@ -49,7 +49,6 @@ observationsRouter
         return res.status(400).json({
           error: { message: `Missing '${key}' in request body` },
         });
-    // newObservation.neighbor = req.user.id;
     ObservationsService.insertObservation(req.app.get("db"), newObservation)
       .then((observation) => {
         res
