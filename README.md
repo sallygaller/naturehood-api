@@ -8,14 +8,14 @@ natureHood is an app designed to foster community and wildlife advocacy in local
 
 This REST API allows users to:
 - Register and log in
-- Create, delete, and edit observations
+- View, create, delete, and edit their observations
 - View observations in their neighborhood
 
 ## Endpoints
 ### /api/user
-`POST /api/user`
-Body: Name, email, password, latitude and longitude of user's neighbood (calculated upon registration via Google Maps Geocoder)
-Result: Creates a new user, directs them to Login page. 
+| Endpoint        | Body           | Result  |
+| ------------- |:-------------:| -----:|
+| `POST /api/user` | Name, email, password, latitude and longitude of user's neighbood (calculated upon registration via Google Maps Geocoder) | Creates a new user, directs them to Login page.
 
 ### /api/auth
 `POST /api/auth/login`
